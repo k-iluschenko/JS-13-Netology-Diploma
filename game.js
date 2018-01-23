@@ -143,19 +143,40 @@ class Level{
 
 
 class LevelParser {
-	constructor(){
+	constructor(letterDictionary){
+		this.letterDictionary = letterDictionary;
+	}
+	actorFromSymbol(letter){
+		if (typeof letter !== 'string' || !this.letterDictionary){
+			return undefined;
+		}
+		return this.letterDictionary[letter];
 
 	}
-	actorFromSymbol(char){
+	obstacleFromSymbol(letter){
+		if (letter === 'x'){return 'wall'}
+		if (letter === '!'){return 'lava'}
 
 	}
-	obstacleFromSymbol(){
+	createGrid(plan){
+		if (plan instanceof Actor){
+			return;
+		}
+
+		let grid = [];
+		for (let line of plan){
+			let rez = [];
+			[...line].forEach((letters) => rez.push(this.obstacleFromSymbol(letters)))
+			grid.push(rez);
+		}
+		return grid;
 
 	}
-	createGrid(){
+	createActors(plan){
+		if (!Array.isArray(plan)){
+			return ;
+		}
 
-	}
-	createActors(){
 
 	}
 	parse(){
