@@ -139,9 +139,6 @@ class Level{
     }
 }
 
-
-
-
 class LevelParser {
 	constructor(letterDictionary){
 		this.letterDictionary = letterDictionary;
@@ -151,18 +148,15 @@ class LevelParser {
 			return undefined;
 		}
 		return this.letterDictionary[letter];
-
 	}
 	obstacleFromSymbol(letter){
 		if (letter === 'x'){return 'wall'}
 		if (letter === '!'){return 'lava'}
-
 	}
 	createGrid(plan){
 		if (plan instanceof Actor){
 			return;
 		}
-
 		let grid = [];
 		for (let line of plan){
 			let rez = [];
@@ -170,19 +164,33 @@ class LevelParser {
 			grid.push(rez);
 		}
 		return grid;
-
 	}
 	createActors(plan){
 		if (!Array.isArray(plan)){
 			return ;
 		}
 
-
+		let actor = [];
+		plan.forEach((itemY, y) => {
+			[...itemY].forEach((itemX, x) => {
+				let constructor = this.actorFromSymbol(itemX);
+				let rez;
+				if (typeof constructor === 'function'){
+					rez = new constructor(new Vector(x, y));
+				}
+				if (rez instanceof Actor){
+					actor.push(rez);
+				}
+			});
+		});
+		return actor;
 	}
+
+
+
 	parse(){
 
 	}
-
 }
 
 class Fireball extends Actor{
@@ -241,6 +249,8 @@ class Coin extends Actor{
 
 class Player extends Actor{
 	constructor(pos){
+		super(pos, new Vector(0.8, 1.5));
+		this.pos = this.pos.plus(new Vector(0, -0.5));
 
 	}
 	get type() {return 'player';}
@@ -257,3 +267,6 @@ const actorDict = {
 
 }
 
+loadLevels()
+    .then((res) => {runGame(JSON.parse(res), parser, DOMDisplay)
+    .then(() => alert('Вы выиграли!'))});
