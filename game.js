@@ -50,7 +50,7 @@ class Actor{
 	  	}
 
 
-	 	if (this === otherActor){return false}
+	 	if (this === otherActor){return false} // если равен самому себе
 		if (this.right > otherActor.left && //проверяем, пересекается ли текущий объект с переданным объектом
 			this.left < otherActor.right &&
 			this.top < otherActor.bottom &&
@@ -93,7 +93,7 @@ class Level{
 	actorAt(actor){ //Определяет, расположен ли какой-то другой движущийся объект в переданной позиции
 		if (!(actor instanceof Actor)){
 	    	throw new Error (`Level:actorAt: не объект типа Actor`);
-	  	}else if (this.actors === undefined){
+	  	}else if (this.actors === undefined){ //нет движущихся объектов 
 	  		return undefined;
 	  	}
 	    for (let actorEl of this.actors) {
@@ -215,7 +215,6 @@ class LevelParser {
 class Fireball extends Actor{
 	constructor(pos = new Vector(0, 0), speed = new Vector(0, 0)){
 		super(pos, undefined, speed);
-
 	}
 	get type(){return 'fireball';}
 	getNextPosition(time = 1){
@@ -229,40 +228,30 @@ class Fireball extends Actor{
 		let nextPos = this.getNextPosition(time);
 		if (level.obstacleAt(nextPos, this.size)){
 			this.handleObstacle();
-
 		}else{this.pos = nextPos}
-
 	}
-
 }
 
 class HorizontalFireball extends Fireball{
 	constructor(pos){
 		super(pos, new Vector(2, 0));
-
 	}
-
 }
 
 class VerticalFireball  extends Fireball{
 	constructor(pos){
 		super(pos, new Vector(0, 2));
-
 	}
-
 }
 
 class FireRain  extends Fireball{
 	constructor(pos){
 		super(pos, new Vector(0, 3));
 		this.startPos = this.pos;
-
 	}
 	handleObstacle(){
 		this.pos = this.startPos;
-
 	}
-
 }
 
 class Coin extends Actor{
@@ -287,19 +276,15 @@ class Coin extends Actor{
 	}
 	act(time){
 		this.pos = this.getNextPosition(time);
-
 	}
-
 }
 
 class Player extends Actor{
 	constructor(pos){
 		super(pos, new Vector(0.8, 1.5));
 		this.pos = this.pos.plus(new Vector(0, -0.5));
-
 	}
 	get type() {return 'player';}
-
 }
   
 const actorDict = {

@@ -1,3 +1,7 @@
+
+
+
+
 Дипломный проект курса JavaScript
 ===
 
@@ -800,3 +804,5 @@ console.log(`Текущая скорость: ${ball.speed.x}: ${ball.speed.y}`)
 [github]: https://github.com/
 [codepen]: https://codepen.io/
 [Repl.it]: https://repl.it/
+
+
