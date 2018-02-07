@@ -32,7 +32,7 @@ class Actor {
 		if (!(position instanceof Vector) ||
 			!(size instanceof Vector) ||
 			!(speed instanceof Vector) ) {
-			throw new Error (`Actor: не объект типа Vector`);
+				throw new Error (`Actor: не объект типа Vector`);
 		}
 		this.pos = position; //расположение
 		this.size = size; //размер
@@ -72,7 +72,7 @@ class Actor {
 			this.left < otherActor.right &&
 			this.top < otherActor.bottom &&
 			this.bottom > otherActor.top){
-			return true; //пересекается 
+				return true; //пересекается 
 		}
 		return false; //не пересекается
 	}	
@@ -122,7 +122,7 @@ class Level{
 	obstacleAt(position, size) { //определяет, нет ли препятствия в указанном месте.
 		if (!(position instanceof Vector) ||
 			!(size instanceof Vector)) {
-			throw new Error (`Level:obstacleAt: не объект типа Vector`);
+				throw new Error (`Level:obstacleAt: не объект типа Vector`);
 		}
 
 		const borderLeft = Math.floor(position.x);
