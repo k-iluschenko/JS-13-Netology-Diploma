@@ -70,15 +70,12 @@ class Actor {
     }
     if (this === otherActor) { // если равен самому себе
       return false;
-    }
-    // здесь можно убрать if и написать просто return this.right > ...
-    if (this.right > otherActor.left && //проверяем, пересекается ли текущий объект с переданным объектом
-      this.left < otherActor.right &&
-      this.top < otherActor.bottom &&
-      this.bottom > otherActor.top) {
-      return true; //пересекается
-    }
-    return false; //не пересекается
+    }   
+    //проверяем, пересекается ли текущий объект с переданным объектом
+    return this.right > otherActor.left && 
+           this.left < otherActor.right && 
+           this.top < otherActor.bottom && 
+           this.bottom > otherActor.top;
   }
 }
 
