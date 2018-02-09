@@ -13,26 +13,14 @@ class Vector {
     if (!(vector instanceof Vector)) {
       throw new Error(`Vector: Можно прибавлять к вектору только вектор типа Vector`);
     }
-<<<<<<< HEAD
     const addX = this.x + vector.x;
     const addY = this.y + vector.y;
-=======
-    // значение переменной присваивается один раз, почему let?
-    let addX = this.x + vector.x;
-    let addY = this.y + vector.y;
->>>>>>> 54743d15fec64f3ba61e7d2a0835e96bf3af8041
     return new Vector(addX, addY); //Создает и возвращает новый объект типа Vector, с новыми координатами
   }
 
   times(factor) {
-<<<<<<< HEAD
     const addX = this.x * factor;
     const addY = this.y * factor;
-=======
-    // значение переменной присваивается один раз, почему let?
-    let addX = this.x * factor;
-    let addY = this.y * factor;
->>>>>>> 54743d15fec64f3ba61e7d2a0835e96bf3af8041
     return new Vector(addX, addY); //Создает и возвращает новый объект типа Vector, с новыми координатами
   }
 }
@@ -48,10 +36,9 @@ class Actor {
       !(speed instanceof Vector)) {
       throw new Error(`Actor: не объект типа Vector`);
     }
-    // зачем комментарии ниже?
-    this.pos = position; //расположение
-    this.size = size; //размер
-    this.speed = speed; //скорость
+    this.pos = position;
+    this.size = size;
+    this.speed = speed;
   }
 
   act() {
@@ -239,13 +226,8 @@ class LevelParser {
     if (plan instanceof Actor) { //
       return;
     }
-<<<<<<< HEAD
-    const grid = [];
-=======
-
     // тут можно использовать метод map
     let grid = [];
->>>>>>> 54743d15fec64f3ba61e7d2a0835e96bf3af8041
     for (const line of plan) {
       const rez = [];
       [...line].forEach((letters) => rez.push(this.obstacleFromSymbol(letters)))
@@ -259,13 +241,8 @@ class LevelParser {
     if (!Array.isArray(plan)) {
       return;
     }
-<<<<<<< HEAD
     const actor = [];
-=======
-    // значение присваивается переменной один раз, почему let?
-    let actor = [];
     // здесь можно использовать reduce
->>>>>>> 54743d15fec64f3ba61e7d2a0835e96bf3af8041
     plan.forEach((itemY, y) => {
       [...itemY].forEach((itemX, x) => {
         const constructor = this.actorFromSymbol(itemX);
@@ -394,7 +371,7 @@ const actorDict = {
   '=': HorizontalFireball,
   '|': VerticalFireball
 
-} // точку с запятой можно поставить :)
+};
 const parser = new LevelParser(actorDict);
 
 loadLevels()
