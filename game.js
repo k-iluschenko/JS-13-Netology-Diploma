@@ -11,7 +11,7 @@ class Vector {
 
   plus(vector) {
     if (!(vector instanceof Vector)) {
-      throw new Error(`Vector: Можно прибавлять к вектору только вектор типа Vector`);
+      throw new Error(`В метод plus передан не вектор`);
     }
     const addX = this.x + vector.x;
     const addY = this.y + vector.y;
@@ -25,16 +25,13 @@ class Vector {
   }
 }
 
-//класс Actor, который позволит контролировать все движущиеся объекты на игровом поле 
-//и контролировать их пересечение.
+//класс Actor, который позволит контролировать все движущиеся объекты на игровом поле и контролировать их пересечение.
 class Actor {
-  // лучше не использовать конструктор Vector без параметров
-  // кто-то может его изменить и всё сломается
-  constructor(position = new Vector(), size = new Vector(1, 1), speed = new Vector()) {
+   constructor(position = new Vector(0, 0), size = new Vector(1, 1), speed = new Vector(0, 0)) {
     if (!(position instanceof Vector) ||
       !(size instanceof Vector) ||
       !(speed instanceof Vector)) {
-      throw new Error(`Actor: не объект типа Vector`);
+      throw new Error(`В конструктор класса Actor передан не вектор`);
     }
     this.pos = position;
     this.size = size;
@@ -66,7 +63,7 @@ class Actor {
 
   isIntersect(otherActor) { //Метод проверяет, пересекается ли текущий объект с переданным объектом.
     if (!(otherActor instanceof Actor)) {
-      throw new Error(`Actor:isIntersect: не объект типа Actor`);
+      throw new Error(`В метод isIntersect не передан движущийся объект типа Actor`);
     }
     if (this === otherActor) { // если равен самому себе
       return false;
@@ -80,17 +77,30 @@ class Actor {
 }
 
 class Level {
-  // можно задать значение по-умолчанию для параметров
-  constructor(grid, actors) { //grid[][] - сетка игрового поля, actors- список движущихся объектов игрового поля
+  constructor(grid = [0][0], actors = []) { //grid[][] - сетка игрового поля, actors- список движущихся объектов игрового поля
+    
+
+
+
+    
     // если будет передан не массив то работаь ничего не будет, может быть не стоит обрабатывать такой вариант?
     if (Array.isArray(grid)) {
       this.grid = grid.slice();  //копия массива
       this.height = this.grid.length; // высота = длине массива
       if (this.grid.some((el) => Array.isArray(el))) { //Проверяем, элементы массива по условию, заданному в передаваемой функции. el - массив
-        // здесь лучше использовать reduce или Math.max + map
-        this.width = this.grid.sort(function (a, b) {
-          return b.length - a.length;
-        })[0].length;
+        // здесь лучше использовать reduce или Math.max + map 
+        // Использовал reduce уровень распарсился немного по другому. Скорее всего даже правильно, по сравнению со старым вариантом
+        this.width = this.grid.reduce(function (rez, item) {
+          if (rez > item.length) {
+            return rez;
+          } else {
+            return item.length;
+          }
+        }, 0);
+      //---------------------- Math.max + map ----------------------------------//
+      //   this.width = Math.max.apply(Math, this.grid.map(function(item) {     //
+      //      return item.length;}))                                            //
+      //------------------------------------------------------------------------//    
       } else {
         this.width = 1;
       }
@@ -100,7 +110,10 @@ class Level {
     }
     this.status = null; // состояние прохождения уровня
     this.finishDelay = 1; //таймаут после окончания игры,
+
+
     // лучше создать копию массива
+    // делаю копию массива через slice. Все ломается. Тесты не проходит
     this.actors = actors;
     if (this.actors) {
       this.player = this.actors.find(function (actor) { //в списке движущихся объектов ищем player
@@ -115,11 +128,17 @@ class Level {
 
   actorAt(actor) { //Определяет, расположен ли какой-то другой движущийся объект в переданной позиции
     if (!(actor instanceof Actor)) {
-      throw new Error(`Level:actorAt: не объект типа Actor`);
+      throw new Error(`В метод actorAt не передан движущийся объект типа Actor`);
     } else if (this.actors === undefined) { //нет движущихся объектов
+
       // лучше проверить этот кейс в конструкторе, а не во всех методах, которые используют this.actors
       return undefined;
     }
+    
+
+
+
+
     // тут лучше использовать find
     for (const actorEl of this.actors) {
       if (actorEl.isIntersect(actor)) {
@@ -131,8 +150,7 @@ class Level {
   obstacleAt(position, size) { //определяет, нет ли препятствия в указанном месте.
     if (!(position instanceof Vector) ||
       !(size instanceof Vector)) {
-      // из сообщение об ошибке непонятно что не так
-      throw new Error(`Level:obstacleAt: не объект типа Vector`);
+      throw new Error(`В метод obstacleAt передан не вектор`);
     }
 
     const borderLeft = Math.floor(position.x);
@@ -147,15 +165,15 @@ class Level {
 
     if (borderLeft < 0 || borderRight > this.width || borderTop < 0) {
       return 'wall';
-    // если if заканчивается на return, то else не нужен
-    } else if (borderBottom > this.height) {
+    } 
+    if (borderBottom > this.height) {
       return 'lava';
     }
     for (let y = borderTop; y < borderBottom; y++) {
       for (let x = borderLeft; x < borderRight; x++) {
-        // this.grid[y][x] лучше сохранить в переменную
-        if (this.grid[y][x]) {
-          return this.grid[y][x];
+        const gridArray = this.grid[y][x];
+        if (gridArray) {
+          return gridArray;
         }
       }
     }
@@ -163,20 +181,24 @@ class Level {
 
   removeActor(actor) { // удаляет переданный объект с игрового поля
     const actorIndex = this.actors.indexOf(actor); //возвращает индекс объекта
-    // а если не нашли?
-    this.actors.splice(actorIndex, 1); //удаляем один элемент с найденного индекса.
+    if (actorIndex !== -1) {
+      this.actors.splice(actorIndex, 1); //удаляем один элемент с найденного индекса.
+    }
   }
 
   noMoreActors(type) { //Определяет, остались ли еще объекты переданного типа на игровом поле
-    // проверка лишняя, лучше использовать метод some
-    if (Array.isArray(this.actors)) {
-      return (!this.actors.find((actor) => actor.type === type));
-    }
-    return true;
+    return !this.actors.some((actor) => actor.type === type)
   }
 
   //playerTouched - Меняет состояние игрового поля при касании игроком каких-либо объектов или препятствий.
   playerTouched(touchedType, actor) {//Тип препятствия или объекта, движущийся объект
+    
+
+
+
+
+
+
     // лучше обратить условие и написать return чтобы уменьшить вложенность
     if (this.status === null) {
       if (['lava', 'fireball'].some((el) => el === touchedType)) { //если коснулись lava или fireball
@@ -200,8 +222,7 @@ class LevelParser {
 
   actorFromSymbol(letter) {//Возвращает конструктор объекта по его символу, используя словарь
     // проверять в каждом мтеоде целостность объекта не очень хорошо
-    // typeof letter !== 'string' - если убрать эту проверку, то ничего не изменится
-    if (typeof letter !== 'string' || !this.letterDictionary) {
+    if (!this.letterDictionary) {
       return undefined;
     }
     return this.letterDictionary[letter];
@@ -214,30 +235,23 @@ class LevelParser {
     if (letter === '!') {
       return 'lava'
     }
-    // зачем эта строчка?
-    return undefined;
   }
 
   createGrid(plan) {// Принимает массив строк и преобразует его в массив массивов
-    // зачем эта проверка?
-    if (plan instanceof Actor) { //
-      return;
-    }
-    // тут можно использовать метод map
-    let grid = [];
-    for (const line of plan) {
+    let obstacleFromSymbol = this.obstacleFromSymbol;
+    let grid = plan.map(function(line) {
       const rez = [];
-      [...line].forEach((letters) => rez.push(this.obstacleFromSymbol(letters)))
-      grid.push(rez);
-    }
+      [...line].forEach((letters) => rez.push(obstacleFromSymbol(letters)));
+      return rez;
+    });
     return grid;
   }
 
   createActors(plan) { //Принимает массив строк и преобразует его в массив движущихся объектов
-    // лишняя проверка
-    if (!Array.isArray(plan)) {
-      return;
-    }
+
+
+
+
     const actor = [];
     // здесь можно использовать reduce
     plan.forEach((itemY, y) => {
@@ -252,20 +266,27 @@ class LevelParser {
         }
       });
     });
+
+
+
+
+
+
+
     return actor;
   }
 
   parse(plan) {
-    // можно переменную не создавать
-    const level = new Level(this.createGrid(plan), this.createActors(plan));
-    return level;
+    return new Level(this.createGrid(plan), this.createActors(plan));
   }
 }
 
 class Fireball extends Actor {
   constructor(pos = new Vector(0, 0), speed = new Vector(0, 0)) {
-    // второй аргумент неправильный
-    super(pos, undefined, speed);
+    super(pos, speed);
+    this.pos = pos;
+    this.speed = speed;
+    this.size = new Vector(1, 1);
   }
 
   get type() {
@@ -291,22 +312,19 @@ class Fireball extends Actor {
 }
 
 class HorizontalFireball extends Fireball {
-  // можно доабвить значение по-умолчанию
-  constructor(pos) {
+  constructor(pos = new Vector(3, 3)) {
     super(pos, new Vector(2, 0));
   }
 }
 
 class VerticalFireball extends Fireball {
-  // можно доабвить значение по-умолчанию
-  constructor(pos) {
+  constructor(pos = new Vector(5, 4)) {
     super(pos, new Vector(0, 2));
   }
 }
 
 class FireRain extends Fireball {
-  // можно доабвить значение по-умолчанию
-  constructor(pos) {
+  constructor(pos = new Vector(0, 3)) {
     super(pos, new Vector(0, 3));
     this.startPos = this.pos;
   }
@@ -317,14 +335,13 @@ class FireRain extends Fireball {
 }
 
 class Coin extends Actor {
-  constructor(pos = new Vector(0, 0)) {
+  constructor(pos = new Vector(2, 2)) {
     super(pos, new Vector(0.6, 0.6));
     this.pos = this.pos.plus(new Vector(0.2, 0.1));
     this.spring = Math.random() * (Math.PI * 2);
     this.springSpeed = 8;
     this.springDist = 0.07;
-    // можно просто = pos
-    this.startPos = Object.assign(this.pos);
+    this.startPos = this.pos;
   }
 
   get type() {
@@ -350,8 +367,7 @@ class Coin extends Actor {
 }
 
 class Player extends Actor {
-  // можно доабвить значение по-умолчанию
-  constructor(pos) {
+  constructor(pos = new Vector(1, 1)) {
     super(pos, new Vector(0.8, 1.5));
     this.pos = this.pos.plus(new Vector(0, -0.5));
   }
