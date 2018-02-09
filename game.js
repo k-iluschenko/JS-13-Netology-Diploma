@@ -13,12 +13,14 @@ class Vector {
     if (!(vector instanceof Vector)) {
       throw new Error(`Vector: Можно прибавлять к вектору только вектор типа Vector`);
     }
+    // значение переменной присваивается один раз, почему let?
     let addX = this.x + vector.x;
     let addY = this.y + vector.y;
     return new Vector(addX, addY); //Создает и возвращает новый объект типа Vector, с новыми координатами
   }
 
   times(factor) {
+    // значение переменной присваивается один раз, почему let?
     let addX = this.x * factor;
     let addY = this.y * factor;
     return new Vector(addX, addY); //Создает и возвращает новый объект типа Vector, с новыми координатами
@@ -28,12 +30,15 @@ class Vector {
 //класс Actor, который позволит контролировать все движущиеся объекты на игровом поле 
 //и контролировать их пересечение.
 class Actor {
+  // лучше не использовать конструктор Vector без параметров
+  // кто-то может его изменить и всё сломается
   constructor(position = new Vector(), size = new Vector(1, 1), speed = new Vector()) {
     if (!(position instanceof Vector) ||
       !(size instanceof Vector) ||
       !(speed instanceof Vector)) {
       throw new Error(`Actor: не объект типа Vector`);
     }
+    // зачем комментарии ниже?
     this.pos = position; //расположение
     this.size = size; //размер
     this.speed = speed; //скорость
@@ -69,6 +74,7 @@ class Actor {
     if (this === otherActor) { // если равен самому себе
       return false;
     }
+    // здесь можно убрать if и написать просто return this.right > ...
     if (this.right > otherActor.left && //проверяем, пересекается ли текущий объект с переданным объектом
       this.left < otherActor.right &&
       this.top < otherActor.bottom &&
@@ -80,11 +86,14 @@ class Actor {
 }
 
 class Level {
+  // можно задать значение по-умолчанию для параметров
   constructor(grid, actors) { //grid[][] - сетка игрового поля, actors- список движущихся объектов игрового поля
+    // если будет передан не массив то работаь ничего не будет, может быть не стоит обрабатывать такой вариант?
     if (Array.isArray(grid)) {
       this.grid = grid.slice();  //копия массива
       this.height = this.grid.length; // высота = длине массива
       if (this.grid.some((el) => Array.isArray(el))) { //Проверяем, элементы массива по условию, заданному в передаваемой функции. el - массив
+        // здесь лучше использовать reduce или Math.max + map
         this.width = this.grid.sort(function (a, b) {
           return b.length - a.length;
         })[0].length;
@@ -97,6 +106,7 @@ class Level {
     }
     this.status = null; // состояние прохождения уровня
     this.finishDelay = 1; //таймаут после окончания игры,
+    // лучше создать копию массива
     this.actors = actors;
     if (this.actors) {
       this.player = this.actors.find(function (actor) { //в списке движущихся объектов ищем player
@@ -113,8 +123,10 @@ class Level {
     if (!(actor instanceof Actor)) {
       throw new Error(`Level:actorAt: не объект типа Actor`);
     } else if (this.actors === undefined) { //нет движущихся объектов
+      // лучше проверить этот кейс в конструкторе, а не во всех методах, которые используют this.actors
       return undefined;
     }
+    // тут лучше использовать find
     for (const actorEl of this.actors) {
       if (actorEl.isIntersect(actor)) {
         return actorEl;
@@ -125,6 +137,7 @@ class Level {
   obstacleAt(position, size) { //определяет, нет ли препятствия в указанном месте.
     if (!(position instanceof Vector) ||
       !(size instanceof Vector)) {
+      // из сообщение об ошибке непонятно что не так
       throw new Error(`Level:obstacleAt: не объект типа Vector`);
     }
 
@@ -140,11 +153,13 @@ class Level {
 
     if (borderLeft < 0 || borderRight > this.width || borderTop < 0) {
       return 'wall';
+    // если if заканчивается на return, то else не нужен
     } else if (borderBottom > this.height) {
       return 'lava';
     }
     for (let y = borderTop; y < borderBottom; y++) {
       for (let x = borderLeft; x < borderRight; x++) {
+        // this.grid[y][x] лучше сохранить в переменную
         if (this.grid[y][x]) {
           return this.grid[y][x];
         }
@@ -154,10 +169,12 @@ class Level {
 
   removeActor(actor) { // удаляет переданный объект с игрового поля
     const actorIndex = this.actors.indexOf(actor); //возвращает индекс объекта
+    // а если не нашли?
     this.actors.splice(actorIndex, 1); //удаляем один элемент с найденного индекса.
   }
 
   noMoreActors(type) { //Определяет, остались ли еще объекты переданного типа на игровом поле
+    // проверка лишняя, лучше использовать метод some
     if (Array.isArray(this.actors)) {
       return (!this.actors.find((actor) => actor.type === type));
     }
@@ -166,6 +183,7 @@ class Level {
 
   //playerTouched - Меняет состояние игрового поля при касании игроком каких-либо объектов или препятствий.
   playerTouched(touchedType, actor) {//Тип препятствия или объекта, движущийся объект
+    // лучше обратить условие и написать return чтобы уменьшить вложенность
     if (this.status === null) {
       if (['lava', 'fireball'].some((el) => el === touchedType)) { //если коснулись lava или fireball
         this.status = 'lost'; // проиграли
@@ -180,11 +198,15 @@ class Level {
 }
 
 class LevelParser {
+  // можно добавить значение по-умолчанию
   constructor(letterDictionary) { //letterDictionary - словарь движущихся объектов игрового поля
+    // лучше создать копию обхекта
     this.letterDictionary = letterDictionary;
   }
 
   actorFromSymbol(letter) {//Возвращает конструктор объекта по его символу, используя словарь
+    // проверять в каждом мтеоде целостность объекта не очень хорошо
+    // typeof letter !== 'string' - если убрать эту проверку, то ничего не изменится
     if (typeof letter !== 'string' || !this.letterDictionary) {
       return undefined;
     }
@@ -198,13 +220,17 @@ class LevelParser {
     if (letter === '!') {
       return 'lava'
     }
+    // зачем эта строчка?
     return undefined;
   }
 
   createGrid(plan) {// Принимает массив строк и преобразует его в массив массивов
+    // зачем эта проверка?
     if (plan instanceof Actor) { //
       return;
     }
+
+    // тут можно использовать метод map
     let grid = [];
     for (const line of plan) {
       let rez = [];
@@ -215,10 +241,13 @@ class LevelParser {
   }
 
   createActors(plan) { //Принимает массив строк и преобразует его в массив движущихся объектов
+    // лишняя проверка
     if (!Array.isArray(plan)) {
       return;
     }
+    // значение присваивается переменной один раз, почему let?
     let actor = [];
+    // здесь можно использовать reduce
     plan.forEach((itemY, y) => {
       [...itemY].forEach((itemX, x) => {
         const constructor = this.actorFromSymbol(itemX);
@@ -235,6 +264,7 @@ class LevelParser {
   }
 
   parse(plan) {
+    // можно переменную не создавать
     const level = new Level(this.createGrid(plan), this.createActors(plan));
     return level;
   }
@@ -242,6 +272,7 @@ class LevelParser {
 
 class Fireball extends Actor {
   constructor(pos = new Vector(0, 0), speed = new Vector(0, 0)) {
+    // второй аргумент неправильный
     super(pos, undefined, speed);
   }
 
@@ -268,18 +299,21 @@ class Fireball extends Actor {
 }
 
 class HorizontalFireball extends Fireball {
+  // можно доабвить значение по-умолчанию
   constructor(pos) {
     super(pos, new Vector(2, 0));
   }
 }
 
 class VerticalFireball extends Fireball {
+  // можно доабвить значение по-умолчанию
   constructor(pos) {
     super(pos, new Vector(0, 2));
   }
 }
 
 class FireRain extends Fireball {
+  // можно доабвить значение по-умолчанию
   constructor(pos) {
     super(pos, new Vector(0, 3));
     this.startPos = this.pos;
@@ -297,6 +331,7 @@ class Coin extends Actor {
     this.spring = Math.random() * (Math.PI * 2);
     this.springSpeed = 8;
     this.springDist = 0.07;
+    // можно просто = pos
     this.startPos = Object.assign(this.pos);
   }
 
@@ -323,6 +358,7 @@ class Coin extends Actor {
 }
 
 class Player extends Actor {
+  // можно доабвить значение по-умолчанию
   constructor(pos) {
     super(pos, new Vector(0.8, 1.5));
     this.pos = this.pos.plus(new Vector(0, -0.5));
@@ -340,7 +376,7 @@ const actorDict = {
   '=': HorizontalFireball,
   '|': VerticalFireball
 
-}
+} // точку с запятой можно поставить :)
 const parser = new LevelParser(actorDict);
 
 loadLevels()
