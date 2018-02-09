@@ -13,14 +13,14 @@ class Vector {
     if (!(vector instanceof Vector)) {
       throw new Error(`Vector: Можно прибавлять к вектору только вектор типа Vector`);
     }
-    let addX = this.x + vector.x;
-    let addY = this.y + vector.y;
+    const addX = this.x + vector.x;
+    const addY = this.y + vector.y;
     return new Vector(addX, addY); //Создает и возвращает новый объект типа Vector, с новыми координатами
   }
 
   times(factor) {
-    let addX = this.x * factor;
-    let addY = this.y * factor;
+    const addX = this.x * factor;
+    const addY = this.y * factor;
     return new Vector(addX, addY); //Создает и возвращает новый объект типа Vector, с новыми координатами
   }
 }
@@ -205,9 +205,9 @@ class LevelParser {
     if (plan instanceof Actor) { //
       return;
     }
-    let grid = [];
+    const grid = [];
     for (const line of plan) {
-      let rez = [];
+      const rez = [];
       [...line].forEach((letters) => rez.push(this.obstacleFromSymbol(letters)))
       grid.push(rez);
     }
@@ -218,7 +218,7 @@ class LevelParser {
     if (!Array.isArray(plan)) {
       return;
     }
-    let actor = [];
+    const actor = [];
     plan.forEach((itemY, y) => {
       [...itemY].forEach((itemX, x) => {
         const constructor = this.actorFromSymbol(itemX);
