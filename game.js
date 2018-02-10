@@ -194,11 +194,10 @@ class Level {
 class LevelParser {
   constructor(letterDictionary = {'@': Player}) { //letterDictionary - словарь движущихся объектов игрового поля
     // лучше создать копию обхекта
-    // Если делаю копию объекта через Object.assign()
+    // Если делаю копию объекта через Object.assign(), то в тестах появляются ошибки 
     //this.letterDictionary = Object.assign(letterDictionary);
-   // то в тестах появляются ошибки 
-   // Например, Метод actorFromSymbol Вернет undefined, если не передать симво
-   this.letterDictionary = letterDictionary;
+    // Например, Метод actorFromSymbol Вернет undefined, если не передать симво
+    this.letterDictionary = letterDictionary;
   }
 
   actorFromSymbol(letter) {//Возвращает конструктор объекта по его символу, используя словарь
@@ -229,7 +228,7 @@ class LevelParser {
   }
 
   createActors(plan) { //Принимает массив строк и преобразует его в массив движущихся объектов
-   const actor = [];
+    const actor = [];
     // здесь можно использовать reduce
     plan.forEach((itemY, y) => {
       [...itemY].forEach((itemX, x) => {
