@@ -1,7 +1,6 @@
 'use strict';
 
-//класс Vector, который позволяет контролировать расположение объектов в двумерном пространстве 
-//и управлять их размером и перемещением.
+//класс Vector, который позволяет контролировать расположение объектов в двумерном пространстве и управлять их размером и перемещением.
 
 class Vector {
   constructor(x = 0, y = 0) { //координаты по оси X и по оси Y
@@ -78,18 +77,13 @@ class Actor {
 
 class Level {
   constructor(grid = [0][0], actors = []) { //grid[][] - сетка игрового поля, actors- список движущихся объектов игрового поля
-    
-
-
-
-    
     // если будет передан не массив то работаь ничего не будет, может быть не стоит обрабатывать такой вариант?
+    // ---если будет передан не массив, то this.height = 0; this.width = 0;
     if (Array.isArray(grid)) {
       this.grid = grid.slice();  //копия массива
       this.height = this.grid.length; // высота = длине массива
       if (this.grid.some((el) => Array.isArray(el))) { //Проверяем, элементы массива по условию, заданному в передаваемой функции. el - массив
-        // здесь лучше использовать reduce или Math.max + map 
-        // Использовал reduce уровень распарсился немного по другому. Скорее всего даже правильно, по сравнению со старым вариантом
+      //---------------------- reduce ------------------------------------------// 
         this.width = this.grid.reduce(function (rez, item) {
           if (rez > item.length) {
             return rez;
@@ -97,9 +91,10 @@ class Level {
             return item.length;
           }
         }, 0);
+      //------------------------------------------------------------------------//  
       //---------------------- Math.max + map ----------------------------------//
-      //   this.width = Math.max.apply(Math, this.grid.map(function(item) {     //
-      //      return item.length;}))                                            //
+      //   this.width = Math.max.apply(Math, this.grid.map(function(item) {     
+      //      return item.length;}))                                            
       //------------------------------------------------------------------------//    
       } else {
         this.width = 1;
@@ -110,15 +105,14 @@ class Level {
     }
     this.status = null; // состояние прохождения уровня
     this.finishDelay = 1; //таймаут после окончания игры,
-
-
-    // лучше создать копию массива
-    // делаю копию массива через slice. Все ломается. Тесты не проходит
-    this.actors = actors;
+    this.actors = Object.assign(actors);
     if (this.actors) {
       this.player = this.actors.find(function (actor) { //в списке движущихся объектов ищем player
         return actor.type === 'player';
       });
+    }
+    if (this.actors === undefined) { //нет движущихся объектов
+      return undefined;
     }
   }
 
@@ -129,22 +123,12 @@ class Level {
   actorAt(actor) { //Определяет, расположен ли какой-то другой движущийся объект в переданной позиции
     if (!(actor instanceof Actor)) {
       throw new Error(`В метод actorAt не передан движущийся объект типа Actor`);
-    } else if (this.actors === undefined) { //нет движущихся объектов
-
-      // лучше проверить этот кейс в конструкторе, а не во всех методах, которые используют this.actors
-      return undefined;
     }
-    
-
-
-
-
-    // тут лучше использовать find
-    for (const actorEl of this.actors) {
+    return this.actors.find(function (actorEl) { 
       if (actorEl.isIntersect(actor)) {
         return actorEl;
       }
-    }
+    });
   }
 
   obstacleAt(position, size) { //определяет, нет ли препятствия в указанном месте.
@@ -191,41 +175,38 @@ class Level {
   }
 
   //playerTouched - Меняет состояние игрового поля при касании игроком каких-либо объектов или препятствий.
-  playerTouched(touchedType, actor) {//Тип препятствия или объекта, движущийся объект
-    
-
-
-
-
-
-
-    // лучше обратить условие и написать return чтобы уменьшить вложенность
-    if (this.status === null) {
-      if (['lava', 'fireball'].some((el) => el === touchedType)) { //если коснулись lava или fireball
-        this.status = 'lost'; // проиграли
-      } else if (touchedType === 'coin' && actor.type === 'coin') { //если коснулись монеты
-        this.removeActor(actor); //удаляем ее
-        if (this.noMoreActors('coin')) { //если монет больше нет
-          this.status = 'won' // выиграли
-        }
+  playerTouched(touchedType, actor) {//Тип препятствия или объекта, движущийся объект  
+    if (this.status !== null) {
+      return;
+    }
+    if (['lava', 'fireball'].some((el) => el === touchedType)) { //если коснулись lava или fireball
+      return this.status = 'lost'; // проиграли
+    } 
+    if (touchedType === 'coin' && actor.type === 'coin') { //если коснулись монеты
+      this.removeActor(actor); //удаляем ее
+      if (this.noMoreActors('coin')) { //если монет больше нет
+        return this.status = 'won' // выиграли
       }
     }
   }
 }
 
 class LevelParser {
-  // можно добавить значение по-умолчанию
-  constructor(letterDictionary) { //letterDictionary - словарь движущихся объектов игрового поля
+  constructor(letterDictionary = {'@': Player}) { //letterDictionary - словарь движущихся объектов игрового поля
     // лучше создать копию обхекта
-    this.letterDictionary = letterDictionary;
+    // Если делаю копию объекта через Object.assign()
+    //this.letterDictionary = Object.assign(letterDictionary);
+   // то в тестах появляются ошибки 
+   // Например, Метод actorFromSymbol Вернет undefined, если не передать симво
+   this.letterDictionary = letterDictionary;
   }
 
   actorFromSymbol(letter) {//Возвращает конструктор объекта по его символу, используя словарь
-    // проверять в каждом мтеоде целостность объекта не очень хорошо
-    if (!this.letterDictionary) {
-      return undefined;
-    }
-    return this.letterDictionary[letter];
+    for (const el in this.letterDictionary) {
+      if (el === letter) { 
+        return this.letterDictionary[letter];
+      }
+    }   
   }
 
   obstacleFromSymbol(letter) { // Возвращает строку, соответствующую символу препятствия.
@@ -238,21 +219,17 @@ class LevelParser {
   }
 
   createGrid(plan) {// Принимает массив строк и преобразует его в массив массивов
-    let obstacleFromSymbol = this.obstacleFromSymbol;
-    let grid = plan.map(function(line) {
+    const obstacleFromSymbols = this.obstacleFromSymbol;
+    const grid = plan.map(function(line) {
       const rez = [];
-      [...line].forEach((letters) => rez.push(obstacleFromSymbol(letters)));
+      [...line].forEach((letters) => rez.push(obstacleFromSymbols(letters)));
       return rez;
     });
     return grid;
   }
 
   createActors(plan) { //Принимает массив строк и преобразует его в массив движущихся объектов
-
-
-
-
-    const actor = [];
+   const actor = [];
     // здесь можно использовать reduce
     plan.forEach((itemY, y) => {
       [...itemY].forEach((itemX, x) => {
@@ -266,13 +243,6 @@ class LevelParser {
         }
       });
     });
-
-
-
-
-
-
-
     return actor;
   }
 
