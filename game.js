@@ -89,14 +89,7 @@ class Level {
     }, 0);
     this.status = null; // состояние прохождения уровня
     this.finishDelay = 1; //таймаут после окончания игры,
-    if (this.actors) {
-      this.player = this.actors.find(actor => { //в списке движущихся объектов ищем player
-        return actor.type === 'player';
-      });
-    }
-    if (this.actors === undefined) { //нет движущихся объектов
-      return undefined;
-    }
+    this.player = this.actors.find(actor => actor.type === 'player');
   }
 
   isFinished() { //Определяет, завершен ли уровень
@@ -107,11 +100,7 @@ class Level {
     if (!(actor instanceof Actor)) {
       throw new Error(`В метод actorAt не передан движущийся объект типа Actor`);
     }
-    return this.actors.find(actorEl => { 
-      if (actorEl.isIntersect(actor)) {
-        return true;
-      }
-    });
+    return this.actors.find(actorEl => actorEl.isIntersect(actor));
   }
 
   obstacleAt(position, size) { //определяет, нет ли препятствия в указанном месте.
@@ -139,9 +128,9 @@ class Level {
     
     for (let y = borderTop; y < borderBottom; y++) {
       for (let x = borderLeft; x < borderRight; x++) {
-        const gridArray = this.grid[y][x];
-        if (gridArray) {
-          return gridArray;
+        const gridLevel = this.grid[y][x];
+        if (gridLevel) {
+          return gridLevel;
         }
       }
     }
@@ -269,8 +258,7 @@ class FireRain extends Fireball {
 
 class Coin extends Actor {
   constructor(pos = new Vector(0, 0)) {
-    super(pos, new Vector(0.6, 0.6));
-    this.pos = pos.plus(new Vector(0.2, 0.1));
+    super(pos.plus(new Vector(0.2, 0.1)), new Vector(0.6, 0.6));
     this.spring = Math.random() * (Math.PI * 2);
     this.springSpeed = 8;
     this.springDist = 0.07;
@@ -301,8 +289,7 @@ class Coin extends Actor {
 
 class Player extends Actor {
   constructor(pos = new Vector(0, 0)) {
-    super(pos, new Vector(0.8, 1.5));
-    this.pos = pos.plus(new Vector(0, -0.5));
+    super(pos.plus(new Vector(0, -0.5)), new Vector(0.8, 1.5));
   }
 
   get type() {
