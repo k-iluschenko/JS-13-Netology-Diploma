@@ -26,7 +26,7 @@ class Vector {
 
 //класс Actor, который позволит контролировать все движущиеся объекты на игровом поле и контролировать их пересечение.
 class Actor {
-   constructor(position = new Vector(0, 0), size = new Vector(1, 1), speed = new Vector(0, 0)) {
+  constructor(position = new Vector(0, 0), size = new Vector(1, 1), speed = new Vector(0, 0)) {
     if (!(position instanceof Vector) ||
       !(size instanceof Vector) ||
       !(speed instanceof Vector)) {
@@ -76,38 +76,21 @@ class Actor {
 }
 
 class Level {
-  constructor(grid = [0][0], actors = []) { //grid[][] - сетка игрового поля, actors- список движущихся объектов игрового поля
-    // если будет передан не массив то работаь ничего не будет, может быть не стоит обрабатывать такой вариант?
-    // ---если будет передан не массив, то this.height = 0; this.width = 0;
-    if (Array.isArray(grid)) {
-      this.grid = grid.slice();  //копия массива
-      this.height = this.grid.length; // высота = длине массива
-      if (this.grid.some((el) => Array.isArray(el))) { //Проверяем, элементы массива по условию, заданному в передаваемой функции. el - массив
-      //---------------------- reduce ------------------------------------------// 
-        this.width = this.grid.reduce(function (rez, item) {
-          if (rez > item.length) {
-            return rez;
-          } else {
-            return item.length;
-          }
-        }, 0);
-      //------------------------------------------------------------------------//  
-      //---------------------- Math.max + map ----------------------------------//
-      //   this.width = Math.max.apply(Math, this.grid.map(function(item) {     
-      //      return item.length;}))                                            
-      //------------------------------------------------------------------------//    
+  constructor(grid = [], actors = []) { //grid[] - сетка игрового поля, actors- список движущихся объектов игрового поля
+    this.actors = actors.slice();
+    this.grid = grid.slice();  //копия массива
+    this.height = this.grid.length; // высота = длине массива
+    this.width = this.grid.reduce((rez, item) => {
+      if (rez > item.length) {
+        return rez;
       } else {
-        this.width = 1;
+        return item.length;
       }
-    } else {
-      this.height = 0;
-      this.width = 0;
-    }
+    }, 0);
     this.status = null; // состояние прохождения уровня
     this.finishDelay = 1; //таймаут после окончания игры,
-    this.actors = Object.assign(actors);
     if (this.actors) {
-      this.player = this.actors.find(function (actor) { //в списке движущихся объектов ищем player
+      this.player = this.actors.find(actor => { //в списке движущихся объектов ищем player
         return actor.type === 'player';
       });
     }
@@ -124,9 +107,9 @@ class Level {
     if (!(actor instanceof Actor)) {
       throw new Error(`В метод actorAt не передан движущийся объект типа Actor`);
     }
-    return this.actors.find(function (actorEl) { 
+    return this.actors.find(actorEl => { 
       if (actorEl.isIntersect(actor)) {
-        return actorEl;
+        return true;
       }
     });
   }
@@ -153,6 +136,7 @@ class Level {
     if (borderBottom > this.height) {
       return 'lava';
     }
+    
     for (let y = borderTop; y < borderBottom; y++) {
       for (let x = borderLeft; x < borderRight; x++) {
         const gridArray = this.grid[y][x];
@@ -192,20 +176,12 @@ class Level {
 }
 
 class LevelParser {
-  constructor(letterDictionary = {'@': Player}) { //letterDictionary - словарь движущихся объектов игрового поля
-    // лучше создать копию обхекта
-    // Если делаю копию объекта через Object.assign(), то в тестах появляются ошибки 
-    //this.letterDictionary = Object.assign(letterDictionary);
-    // Например, Метод actorFromSymbol Вернет undefined, если не передать симво
-    this.letterDictionary = letterDictionary;
+  constructor(letterDictionary = {}) { //letterDictionary - словарь движущихся объектов игрового поля
+    this.letterDictionary = Object.assign({}, letterDictionary);
   }
 
   actorFromSymbol(letter) {//Возвращает конструктор объекта по его символу, используя словарь
-    for (const el in this.letterDictionary) {
-      if (el === letter) { 
-        return this.letterDictionary[letter];
-      }
-    }   
+    return this.letterDictionary[letter];
   }
 
   obstacleFromSymbol(letter) { // Возвращает строку, соответствующую символу препятствия.
@@ -218,31 +194,22 @@ class LevelParser {
   }
 
   createGrid(plan) {// Принимает массив строк и преобразует его в массив массивов
-    const obstacleFromSymbols = this.obstacleFromSymbol;
-    const grid = plan.map(function(line) {
-      const rez = [];
-      [...line].forEach((letters) => rez.push(obstacleFromSymbols(letters)));
-      return rez;
-    });
-    return grid;
+    return plan.map(line => line.split('')).map(line => line.map(line => this.obstacleFromSymbol(line)));  
   }
 
   createActors(plan) { //Принимает массив строк и преобразует его в массив движущихся объектов
-    const actor = [];
-    // здесь можно использовать reduce
-    plan.forEach((itemY, y) => {
-      [...itemY].forEach((itemX, x) => {
+    return plan.reduce((rez, itemY, y) => {
+      itemY.split('').forEach((itemX, x) => {
         const constructor = this.actorFromSymbol(itemX);
-        let rez;
         if (typeof constructor === 'function') {
-          rez = new constructor(new Vector(x, y));
-        }
-        if (rez instanceof Actor) {
-          actor.push(rez);
+          const actor = new constructor(new Vector(x, y));
+          if (actor instanceof Actor) {
+            rez.push(actor);
+          }
         }
       });
-    });
-    return actor;
+      return rez;
+    },[]);
   }
 
   parse(plan) {
@@ -252,10 +219,7 @@ class LevelParser {
 
 class Fireball extends Actor {
   constructor(pos = new Vector(0, 0), speed = new Vector(0, 0)) {
-    super(pos, speed);
-    this.pos = pos;
-    this.speed = speed;
-    this.size = new Vector(1, 1);
+     super(pos, new Vector(1, 1), speed);
   }
 
   get type() {
@@ -281,19 +245,19 @@ class Fireball extends Actor {
 }
 
 class HorizontalFireball extends Fireball {
-  constructor(pos = new Vector(3, 3)) {
+  constructor(pos = new Vector(0, 0)) {
     super(pos, new Vector(2, 0));
   }
 }
 
 class VerticalFireball extends Fireball {
-  constructor(pos = new Vector(5, 4)) {
+  constructor(pos = new Vector(0, 0)) {
     super(pos, new Vector(0, 2));
   }
 }
 
 class FireRain extends Fireball {
-  constructor(pos = new Vector(0, 3)) {
+  constructor(pos = new Vector(0, 0)) {
     super(pos, new Vector(0, 3));
     this.startPos = this.pos;
   }
@@ -304,7 +268,7 @@ class FireRain extends Fireball {
 }
 
 class Coin extends Actor {
-  constructor(pos = new Vector(2, 2)) {
+  constructor(pos = new Vector(0, 0)) {
     super(pos, new Vector(0.6, 0.6));
     this.pos = this.pos.plus(new Vector(0.2, 0.1));
     this.spring = Math.random() * (Math.PI * 2);
@@ -336,7 +300,7 @@ class Coin extends Actor {
 }
 
 class Player extends Actor {
-  constructor(pos = new Vector(1, 1)) {
+  constructor(pos = new Vector(0, 0)) {
     super(pos, new Vector(0.8, 1.5));
     this.pos = this.pos.plus(new Vector(0, -0.5));
   }
