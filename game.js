@@ -270,7 +270,7 @@ class FireRain extends Fireball {
 class Coin extends Actor {
   constructor(pos = new Vector(0, 0)) {
     super(pos, new Vector(0.6, 0.6));
-    this.pos = this.pos.plus(new Vector(0.2, 0.1));
+    this.pos = pos.plus(new Vector(0.2, 0.1));
     this.spring = Math.random() * (Math.PI * 2);
     this.springSpeed = 8;
     this.springDist = 0.07;
@@ -302,7 +302,7 @@ class Coin extends Actor {
 class Player extends Actor {
   constructor(pos = new Vector(0, 0)) {
     super(pos, new Vector(0.8, 1.5));
-    this.pos = this.pos.plus(new Vector(0, -0.5));
+    this.pos = pos.plus(new Vector(0, -0.5));
   }
 
   get type() {
